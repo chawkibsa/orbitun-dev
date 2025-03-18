@@ -1,0 +1,27 @@
+
+
+
+@app.on_event("startup")
+def on_startup():
+    SQLModel.metadata.create_all(engine)
+
+    with Session(engine) as session:
+        # Check if predefined rules already exist
+        if not session.exec(select(DefaultRule)).all():
+            # Add predefined rules
+            rule1 = DefaultRule(default_rule_name="Allow SSH")
+            rule2 = DefaultRule(default_rule_name="Block HTTP")
+            session.add_all([rule1, rule2])
+            session.commit()
+
+            #print(rule1.default_rule_id)
+            #time.sleep(20)
+
+            # Add predefined variables
+            session.add_all([
+                DefaultVariable(default_rule_id=rule1.default_rule_id, default_variable_key="port", default_variable_value="22"),
+                DefaultVariable(default_rule_id=rule1.default_rule_id, default_variable_key="protocol", default_variable_value="TCP"),
+                DefaultVariable(default_rule_id=rule2.default_rule_id, default_variable_key="port", default_variable_value="80"),
+                DefaultVariable(default_rule_id=rule2.default_rule_id, default_variable_key="protocol", default_variable_value="TCP"),
+            ])
+            session.commit()
