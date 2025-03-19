@@ -27,11 +27,23 @@ To test orbitun locally, follow these steps:
 1. Clone the repository:
    ```bash
    git clone https://github.com/chawkibsa/orbitun-dev.git
-   cd orbitun
+   cd orbitun-dev
    ```
-2. Install dependencies and set up the environment.
-3. Deploy agents on target machines (currently redhat released).
-4. Start the server and initiate compliance scans.
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. and set up the database (you should have Postgres installed):
+   ```bash
+   create user orbitundev with encrypted password 'orbitundev';
+   CREATE DATABASE orbitundb OWNER orbitundev;
+   ```
+4. Start the server:
+   ```bash
+   python3 -m app.main
+   ```
+5. Access orbitundev API documentation.
+6. Deploy agents on target machines (optional).
 
 ## Contribution Guidelines
 orbitun-dev is open for contributions from the security and development community. We welcome:
