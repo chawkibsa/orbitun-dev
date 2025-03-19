@@ -2,3 +2,4 @@ fastapi
 sqlmodel
 uvicorn
 pika
+psycopg2

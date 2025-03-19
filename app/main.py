@@ -7,6 +7,7 @@ from .models.defaults import DefaultVariable, DefaultRule
 from .routers import defaults, policies, rules, variables, agents,endpoints, scans, tenants
 from fastapi.staticfiles import StaticFiles
 import json
+import psycopg2
 
 app = FastAPI(title="Orbitun", description="""Welcome to the **Orbitun** API documentation**! 
 This application provides a robust and scalable solution for managing policies and their associated rules in a secure and efficient manner. Designed with flexibility and enterprise-grade best practices in mind, this API enables administrators and users to define, assign, and customize policies and rules tailored to their specific needs.
@@ -55,7 +56,7 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
                                                         
 # Database setup                                                                             
-DATABASE_URL = "sqlite:///./test.db"                                                         
+DATABASE_URL = "postgresql://orbitundev:orbitundev@localhost/orbitundevdb"                                                         
 engine = create_engine(DATABASE_URL, echo=True)
 
 def load_config(file_path: str):
