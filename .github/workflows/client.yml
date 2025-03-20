@@ -1,0 +1,12 @@
+name: Client
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'  # Runs every 10 minutes
+
+jobs:
+  keep_alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping orbitun-dev
+        run: curl -s https://orbitun-dev.onrender.com/docs > /dev/null
