@@ -1,6 +1,6 @@
 from sqlmodel import SQLModel, create_engine, Session, select
 from dotenv import load_dotenv
-
+import os
 
 # Database setup                                                                             
 load_dotenv()  # Load environment variables from .env

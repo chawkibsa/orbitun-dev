@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 import json
 import psycopg2
 from dotenv import load_dotenv
+import os
 
 app = FastAPI(title="Orbitun", description="""Welcome to the **Orbitun** API documentation**! 
 This application provides a robust and scalable solution for managing policies and their associated rules in a secure and efficient manner. Designed with flexibility and enterprise-grade best practices in mind, this API enables administrators and users to define, assign, and customize policies and rules tailored to their specific needs.
