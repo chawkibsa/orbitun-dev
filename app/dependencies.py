@@ -1,9 +1,13 @@
 from sqlmodel import SQLModel, create_engine, Session, select
+from dotenv import load_dotenv
 
 
+# Database setup                                                                             
+load_dotenv()  # Load environment variables from .env
 
-# Database setup
-DATABASE_URL = "postgresql://orbitundev:orbitundev@localhost/orbitundevdb"
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL is not set in .env")
 engine = create_engine(DATABASE_URL, echo=True)
 
 # Database utilities
