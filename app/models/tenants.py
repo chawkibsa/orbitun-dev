@@ -5,5 +5,7 @@ from .agents import Agent
 class Tenant(TenantInput, table=True):
     __tablename__="tenants"
     id : int = Field(primary_key = True, default=None)
-
+    
+    policies: list["Policy"] = Relationship(back_populates="tenant")
     agents: list["Agent"] = Relationship(back_populates="tenant")
+
