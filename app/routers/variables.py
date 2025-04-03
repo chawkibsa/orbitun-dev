@@ -1,37 +1,92 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException#, Header
 from sqlmodel import Session, select
 from ..dependencies import get_session
 from ..schemas.variables import VariableOutput
 from ..models.variables import Variable
 from ..models.rules import Rule
+from ..models.policies import Policy
 
+router = APIRouter(
+    prefix="/api/policies/{policy_id}/rules/{rule_id}/variables",
+    tags=["Variables Management"],
+)
 
-router = APIRouter(prefix="/api/policies/{policy_id}/rules/{rules_id}/variables", tags=["Variables Management"])
+# Dependency to get the current tenant ID from the header (Future)
+#def get_current_tenant_id(x_tenant_id: str = Header(...)):
+#    try:
+#        return int(x_tenant_id)
+#    except ValueError:
+#        raise HTTPException(status_code=400, detail="Invalid Tenant ID format")
 
 
 @router.get("/variables", response_model=list[VariableOutput])
-def get_variables(policy_id : int, rule_id: int , session: Session = Depends(get_session)) -> list[VariableOutput]:
-    query = select(Rule).where(Rule.policy_id == policy_id , Rule.id == id)
-    rule_matches = session.exec(query).all()
-    if rule_matches:
-        query = select(Variable).where(Variable.rule_id == rule_id)
-        variables = session.exec(query).all()
-        return variables
+def get_variables(
+    policy_id: int,
+    rule_id: int,
+    current_tenant_id: int, #= Depends(get_current_tenant_id),
+    session: Session = Depends(get_session),
+) -> list[VariableOutput]:
+    """
+    Get all variables for a rule, ensuring tenant ownership.
+    """
+    policy = session.get(Policy, policy_id)
+    if not policy:
+        raise HTTPException(status_code=404, detail="Policy not found")
+
+    # Check if the policy belongs to the current tenant
+    if policy.tenant_id != current_tenant_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    rule = session.get(Rule, rule_id)
+    if not rule:
+        raise HTTPException(status_code=404, detail="Rule not found")
+
+    # Check if the rule belongs to the policy
+    if rule.policy_id != policy_id:
+        raise HTTPException(status_code=404, detail="Rule not found in this policy")
+
+    query = select(Variable).where(Variable.rule_id == rule_id)
+    variables = session.exec(query).all()
+    return variables
 
 
 @router.put("/{variable_id}", response_model=VariableOutput)
-def get_variables(policy_id : int, rule_id: int ,variable_id :int, new_variable_value: str, session: Session = Depends(get_session)) -> VariableOutput:
-    query = select(Rule).where(Rule.policy_id == policy_id , Rule.id == rule_id)
-    rule_matches = session.exec(query).all()
-    if rule_matches:
-        query = select(Variable).where(Variable.rule_id == rule_matches[0].id, Variable.id == variable_id)
-        variables_matches= session.exec(query).all()
-        if variables_matches:
-            variable = session.get(Variable, variable_id)
-            query = select(Variable).where(Variable.variable_value == new_variable_value)
-            variable_value_matches = session.exec(query).all()
-            if not variable_value_matches:
-                variable.variable_value = new_variable_value
-                session.commit()
-                session.refresh(variable)
-                return variable
+def modify_variable(
+    policy_id: int,
+    rule_id: int,
+    variable_id: int,
+    new_variable_value: str,
+    current_tenant_id: int, #= Depends(get_current_tenant_id),
+    session: Session = Depends(get_session),
+) -> VariableOutput:
+    """
+    Modify a variable's value, ensuring tenant ownership.
+    """
+    policy = session.get(Policy, policy_id)
+    if not policy:
+        raise HTTPException(status_code=404, detail="Policy not found")
+
+    # Check if the policy belongs to the current tenant
+    if policy.tenant_id != current_tenant_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    rule = session.get(Rule, rule_id)
+    if not rule:
+        raise HTTPException(status_code=404, detail="Rule not found")
+
+    # Check if the rule belongs to the policy
+    if rule.policy_id != policy_id:
+        raise HTTPException(status_code=404, detail="Rule not found in this policy")
+
+    variable = session.get(Variable, variable_id)
+    if not variable:
+        raise HTTPException(status_code=404, detail="Variable not found")
+
+    # Check if the variable belongs to the rule
+    if variable.rule_id != rule_id:
+        raise HTTPException(status_code=404, detail="Variable not found in this rule")
+
+    variable.variable_value = new_variable_value
+    session.commit()
+    session.refresh(variable)
+    return variable
